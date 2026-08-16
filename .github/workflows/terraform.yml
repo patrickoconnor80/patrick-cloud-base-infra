@@ -1,0 +1,56 @@
+name: Terraform Apply
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tf/**"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Determine changed modules
+        id: changed
+        run: |
+          MODULES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- tf | awk -F/ '{print $2}' | sort -u)
+          echo "Changed modules: $MODULES"
+          echo "modules<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$MODULES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Configure AWS credentials
+        if: steps.changed.outputs.modules != ''
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::948065143262:role/patrick-cloud-dev-terraform-deployer-role
+          aws-region: us-east-1
+
+      - name: Setup Terraform
+        if: steps.changed.outputs.modules != ''
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5.7"
+
+      - name: Apply each changed module
+        if: steps.changed.outputs.modules != ''
+        run: |
+          for m in ${{ steps.changed.outputs.modules }}; do
+            [ -d "tf/$m" ] || continue
+            echo "== Applying tf/$m =="
+            cd "tf/$m"
+            terraform init -backend-config=./env/dev/backend.config -reconfigure
+            # dev.tfvars is gitignored repo-wide (*.tfvars) -- passed inline instead since
+            # every module here only takes `env`, which isn't sensitive.
+            terraform apply -var="env=dev" -lock=false -auto-approve
+            cd "$GITHUB_WORKSPACE"
+          done

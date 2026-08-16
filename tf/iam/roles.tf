@@ -97,7 +97,10 @@ resource "aws_iam_role" "terraform_deployer" {
           "token.actions.githubusercontent.com:sub": [
             "repo:patrickoconnor80/patrick-cloud-base-infra:ref:refs/heads/main",
             "repo:patrickoconnor80/patrick-cloud-website:ref:refs/heads/main",
-            "repo:patrickoconnor80/patrick-cloud-stock-screener:ref:refs/heads/main"
+            "repo:patrickoconnor80/patrick-cloud-stock-screener:ref:refs/heads/main",
+            "repo:patrickoconnor80@*/patrick-cloud-base-infra@*:ref:refs/heads/main",
+            "repo:patrickoconnor80@*/patrick-cloud-website@*:ref:refs/heads/main",
+            "repo:patrickoconnor80@*/patrick-cloud-stock-screener@*:ref:refs/heads/main"
           ]
         }
       }

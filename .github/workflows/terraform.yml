@@ -49,6 +49,8 @@ jobs:
             echo "== Applying tf/$m =="
             cd "tf/$m"
             terraform init -backend-config=./env/dev/backend.config -reconfigure
-            terraform apply -var-file=./env/dev/dev.tfvars -lock=false -auto-approve
+            # dev.tfvars is gitignored repo-wide (*.tfvars) -- passed inline instead since
+            # every module here only takes `env`, which isn't sensitive.
+            terraform apply -var="env=dev" -lock=false -auto-approve
             cd "$GITHUB_WORKSPACE"
           done

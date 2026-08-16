@@ -27,7 +27,8 @@ data "aws_iam_policy_document" "terraform_deployer_apps" {
         "lambda:TagResource",
         "lambda:UntagResource",
         "lambda:ListVersionsByFunction",
-        "lambda:InvokeFunction"
+        "lambda:InvokeFunction",
+        "lambda:ListTags"
     ]
     resources = ["arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:function:${local.prefix}-*"]
   }
@@ -43,7 +44,8 @@ data "aws_iam_policy_document" "terraform_deployer_apps" {
         "events:EnableRule",
         "events:DisableRule",
         "events:TagResource",
-        "events:UntagResource"
+        "events:UntagResource",
+        "events:ListTagsForResource"
     ]
     resources = ["arn:aws:events:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:rule/${local.prefix}-*"]
   }
@@ -70,9 +72,23 @@ data "aws_iam_policy_document" "terraform_deployer_apps" {
         "ecr:CompleteLayerUpload",
         "ecr:BatchCheckLayerAvailability",
         "ecr:BatchGetImage",
-        "ecr:TagResource"
+        "ecr:TagResource",
+        "ecr:ListTagsForResource"
     ]
     resources = ["arn:aws:ecr:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:repository/${local.prefix}-*"]
+  }
+
+  statement {
+    sid    = "IAMTagsRead"
+    effect = "Allow"
+    actions = [
+        "iam:ListRoleTags",
+        "iam:ListPolicyTags"
+    ]
+    resources = [
+        "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.prefix}-*",
+        "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/${local.prefix}-*"
+    ]
   }
 
   statement {

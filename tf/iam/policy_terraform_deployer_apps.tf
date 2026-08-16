@@ -18,6 +18,7 @@ data "aws_iam_policy_document" "terraform_deployer_apps" {
         "lambda:CreateFunction",
         "lambda:GetFunction",
         "lambda:GetFunctionConfiguration",
+        "lambda:GetPolicy",
         "lambda:UpdateFunctionCode",
         "lambda:UpdateFunctionConfiguration",
         "lambda:DeleteFunction",
@@ -89,6 +90,17 @@ data "aws_iam_policy_document" "terraform_deployer_apps" {
         "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.prefix}-*",
         "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/${local.prefix}-*"
     ]
+  }
+
+  statement {
+    sid    = "IAMPolicyVersionManage"
+    effect = "Allow"
+    actions = [
+        "iam:ListPolicyVersions",
+        "iam:CreatePolicyVersion",
+        "iam:DeletePolicyVersion"
+    ]
+    resources = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/${local.prefix}-*"]
   }
 
   statement {
